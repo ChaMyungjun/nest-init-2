@@ -1,0 +1,17 @@
+{
+  "type": "postgres",
+  "host": "localhost",
+  "post": "5432",
+  "username": "tkendi",
+  "password": "",
+  "database": "tkendi",
+  "synchronize": true,
+  "logging": true,
+  "entities": ["dist/**/*.entity.{ts,js}"],
+  "migrations": ["dist/migration/**/*.ts"],
+  "subscribers": ["dist/subscriber/**/*.ts"],
+  "cli": {
+    "migrationsDir": "dist/migration",
+    "subscribersDir": "dist/subscriber"
+  }
+}
