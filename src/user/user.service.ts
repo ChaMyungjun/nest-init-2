@@ -23,12 +23,11 @@ export class UserService {
   }
 
   async createUser(req) {
-    console.log(req);
-
     const newUser: User = this.userRepository.create({
       id: req.id,
-      intra_id: req.intra_id,
+      email: req.email,
       nickname: req.nickname,
+      age: req.age,
     });
     await this.userRepository.insert(newUser);
   }

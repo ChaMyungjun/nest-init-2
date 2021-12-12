@@ -6,8 +6,11 @@ export class User {
   id: number;
 
   @Column()
-  intra_id: string;
+  email: string;
 
   @Column()
   nickname: string;
+
+  @Column()
+  age: number;
 }
