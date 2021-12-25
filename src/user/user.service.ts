@@ -49,16 +49,18 @@ export class UserService {
   }
 
   async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.userRepository.findOne(username);
-    if (user && user.password === pass) {
-      const { password, ...result } = user;
+    const user = await this.userRepository.find();
+    const findUser = await user.find((cur) => cur.username === username);
+    if (user && findUser.password === pass) {
+      const { password, ...result } = findUser;
       return result;
+    } else {
+      throw new NotFoundException(`${username} not found`);
     }
-    return null;
   }
 
   async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
+    const payload = { username: user.username, sub: user.id };
 
     return {
       access_token: this.jwtService.sign(payload),

@@ -40,18 +40,26 @@ export class UserController {
 
   @Patch(':id')
   updateUser(@Param('id') userId: number, @Body() req) {
+    // console.log("asdfasdf",req)
     return this.usersService.update(userId, req);
   }
 
   @UseGuards(LocalAuthGuard)
   @Post('/login')
   async login(@Request() req) {
+    console.log(
+      req.res.setHeader(
+        'Set-Cookie',
+        (await this.usersService.login(req.user)).access_token,
+      ),
+    );
     return this.usersService.login(req.user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('/me')
-  async getMe(@Request() req) {
-    return req.user;
+  async getUserMe(@Request() req) {
+    console.log(req);
+    // return req.user;
   }
 }
