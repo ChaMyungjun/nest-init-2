@@ -1,8 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
+import { jwtConstants } from './constants';
 
 @Injectable()
 export class UserService {
@@ -55,7 +62,11 @@ export class UserService {
       const { password, ...result } = findUser;
       return result;
     } else {
-      throw new NotFoundException(`${username} not found`);
+      throw new ForbiddenException({
+        statusCode: HttpStatus.FORBIDDEN,
+        message: [`등록되지 않은 사용자입니다.`],
+        error: 'Forbidden',
+      });
     }
   }
 
@@ -63,7 +74,10 @@ export class UserService {
     const payload = { username: user.username, sub: user.id };
 
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload, {
+        secret: jwtConstants.secret,
+        expiresIn: '1d',
+      }),
     };
   }
 }

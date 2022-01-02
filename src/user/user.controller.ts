@@ -9,6 +9,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { PATH_METADATA } from '@nestjs/common/constants';
 
 import { UserService } from './user.service';
 import { LocalAuthGuard } from './guard/local-auth.guard';
@@ -47,19 +48,12 @@ export class UserController {
   @UseGuards(LocalAuthGuard)
   @Post('/login')
   async login(@Request() req) {
-    console.log(
-      req.res.setHeader(
-        'Set-Cookie',
-        (await this.usersService.login(req.user)).access_token,
-      ),
-    );
     return this.usersService.login(req.user);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('/me')
+  @Get('/profile/me')
   async getUserMe(@Request() req) {
-    console.log(req);
-    // return req.user;
+    return req.user;
   }
 }
