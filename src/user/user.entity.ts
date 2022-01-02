@@ -9,8 +9,8 @@ export class User {
   email: string;
 
   @Column()
-  nickname: string;
+  username: string;
 
   @Column()
-  age: number;
+  password: string;
 }
