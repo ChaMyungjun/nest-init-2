@@ -41,8 +41,8 @@ export class AuthService {
   }
 
   async register(user: User) {
-    const hashedPassword = await hash(user.password, 10);
     try {
+      const hashedPassword = await hash(user.password, 10);
       const { password, ...returnUser } = await this.userService.create({
         ...user,
         password: hashedPassword,
@@ -53,6 +53,11 @@ export class AuthService {
       if (error?.code === "ER_DUP_ENTRY") {
         throw new HttpException(
           "User with that email already exists",
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        throw new HttpException(
+          "user data doesn't matching",
           HttpStatus.BAD_REQUEST,
         );
       }

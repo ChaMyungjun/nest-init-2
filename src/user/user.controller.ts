@@ -1,9 +1,11 @@
 import { Controller, Delete, Get, Param } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { Public } from "src/skip-auth.decorator";
 import { User } from "./user.entity";
 import { UserService } from "./user.service";
 
-@Controller("user")
+@Controller("api/user")
+@ApiTags("User")
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

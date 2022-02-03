@@ -14,8 +14,10 @@ import { LocalAuthGuard } from "./guards/local-auth.guard";
 import { JwtRefreshGuard } from "./guards/jwt-refresh-auth.guard";
 import { Response } from "express";
 import { UserService } from "src/user/user.service";
+import { ApiTags } from "@nestjs/swagger";
 
-@Controller("auth")
+@Controller("api/auth")
+@ApiTags("Auth")
 export class AuthController {
   constructor(
     private authService: AuthService,
