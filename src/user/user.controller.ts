@@ -1,59 +1,27 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Delete,
-  Patch,
-  Body,
-  Param,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
-import { PATH_METADATA } from '@nestjs/common/constants';
+import { Controller, Delete, Get, Param } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
+import { Public } from "src/skip-auth.decorator";
+import { User } from "./user.entity";
+import { UserService } from "./user.service";
 
-import { UserService } from './user.service';
-import { LocalAuthGuard } from './guard/local-auth.guard';
-import { JwtAuthGuard } from './guard/jwt-auth.guard';
-
-@Controller('user')
+@Controller("api/user")
+@ApiTags("User")
 export class UserController {
-  constructor(private readonly usersService: UserService) {}
+  constructor(private readonly userService: UserService) {}
 
+  @Public()
   @Get()
-  getAllUser() {
-    return this.usersService.findAll();
+  findAll(): Promise<User[]> {
+    return this.userService.findAll();
   }
 
-  @Get(':id')
-  getOneUser(@Param('id') userId: number) {
-    return this.usersService.findOne(userId);
+  @Get(":id")
+  findOne(@Param() id: string): Promise<User> {
+    return this.userService.findOne(id);
   }
 
-  @Post()
-  createUser(@Body() req) {
-    return this.usersService.createUser(req);
-  }
-
-  @Delete(':id')
-  removeUser(@Param('id') userId: number) {
-    return this.usersService.remove(userId);
-  }
-
-  @Patch(':id')
-  updateUser(@Param('id') userId: number, @Body() req) {
-    // console.log("asdfasdf",req)
-    return this.usersService.update(userId, req);
-  }
-
-  @UseGuards(LocalAuthGuard)
-  @Post('/login')
-  async login(@Request() req) {
-    return this.usersService.login(req.user);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('/profile/me')
-  async getUserMe(@Request() req) {
-    return req.user;
+  @Delete(":id")
+  async remove(@Param() id: string): Promise<void> {
+    await this.userService.remove(id);
   }
 }

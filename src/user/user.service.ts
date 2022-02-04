@@ -1,83 +1,77 @@
-import {
-  ForbiddenException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { JwtService } from '@nestjs/jwt';
-import { Repository } from 'typeorm';
-import { User } from './user.entity';
-import { jwtConstants } from './constants';
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { User } from "./user.entity";
+import { compare, hash } from "bcrypt";
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private userRepository: Repository<User>,
-    private jwtService: JwtService,
+    private usersRepository: Repository<User>,
   ) {}
 
   findAll(): Promise<User[]> {
-    return this.userRepository.find();
+    return this.usersRepository.find();
   }
 
-  async findOne(userId: number): Promise<User> {
-    const user: User = await this.userRepository.findOne(userId);
-    if (!user) {
-      throw new NotFoundException(`${userId} not found`);
-    }
+  findOne(id: string): Promise<User> {
+    return this.usersRepository.findOne(id);
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.usersRepository.delete(id);
+  }
+
+  async create(user: User): Promise<User> {
+    await this.usersRepository.save(user);
     return user;
   }
 
-  async createUser(req) {
-    let newUser: User;
-    if (req.password === req.passwordConfirm) {
-      newUser = this.userRepository.create({
-        id: req.id,
-        email: req.email,
-        username: req.username,
-        password: req.password,
-      });
+  async getByEmail(email: string) {
+    const user = this.usersRepository.findOne({ email });
+    if (user) {
+      return user;
+    }
+    throw new HttpException(
+      "User with this email does not exist",
+      HttpStatus.NOT_FOUND,
+    );
+  }
+
+  async getById(id: number) {
+    const user = await this.usersRepository.findOne({ id });
+    if (user) {
+      return user;
     }
 
-    await this.userRepository.insert(newUser);
+    throw new HttpException(
+      "User with this id does not exist",
+      HttpStatus.NOT_FOUND,
+    );
   }
 
-  async remove(id: number): Promise<void> {
-    await this.userRepository.delete(id);
+  async setCurrentRefreshToken(refreshToken: string, id: number) {
+    const currentHashedRefreshToken = await hash(refreshToken, 10);
+    await this.usersRepository.update(id, { currentHashedRefreshToken });
   }
 
-  async update(id: number, req): Promise<User> {
-    const userToUpdate: User = await this.findOne(id);
-    userToUpdate.username = req.username;
-    return await this.userRepository.save(userToUpdate);
-  }
+  async getUserIfRefreshTokenMatches(refreshToken: string, id: number) {
+    const user = await this.getById(id);
 
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.userRepository.find();
-    const findUser = await user.find((cur) => cur.username === username);
-    if (user && findUser.password === pass) {
-      const { password, ...result } = findUser;
-      return result;
-    } else {
-      throw new ForbiddenException({
-        statusCode: HttpStatus.FORBIDDEN,
-        message: [`등록되지 않은 사용자입니다.`],
-        error: 'Forbidden',
-      });
+    const isRefreshTokenMatching = await compare(
+      refreshToken,
+      user.currentHashedRefreshToken,
+    );
+
+    if (isRefreshTokenMatching) {
+      return user;
     }
   }
 
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.id };
-
-    return {
-      access_token: this.jwtService.sign(payload, {
-        secret: jwtConstants.secret,
-        expiresIn: '1d',
-      }),
-    };
+  async removeRefreshToken(id: number) {
+    return this.usersRepository.update(id, {
+      currentHashedRefreshToken: null,
+    });
   }
 }
