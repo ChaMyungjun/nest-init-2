@@ -40,7 +40,9 @@ export class AuthController {
     res.cookie("Authentication", accessToken, accessOption);
     res.cookie("Refresh", refreshToken, refreshOption);
 
-    return user;
+    const { currentHashedRefreshToken, ...data } = user;
+
+    return data;
   }
 
   @Public()
@@ -59,7 +61,8 @@ export class AuthController {
   @Public()
   @Post("register")
   async register(@Body() user: User): Promise<any> {
-    return this.authService.register(user);
+    this.authService.register(user);
+    return {};
   }
 
   @Public()
